@@ -20,20 +20,41 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * The Dropped Item Combiner Plugin.
+ * @author Brittan Thomas
+ */
 public class DICPlugin extends JavaPlugin implements Listener {
 	
+	/**
+	 * Instantiates a new DIC plugin.
+	 */
 	public DICPlugin() {
 		instance = this;
 	}
 	
+	/**
+	 * The singleton instance.
+	 */
 	private static DICPlugin instance;
 	
+	/**
+	 * Gets the single instance of DICPlugin.
+	 *
+	 * @return single instance of DICPlugin
+	 */
 	public static DICPlugin getInstance() {
 		return instance;
 	}
 	
+	/**
+	 * The list of recipes loaded from the configuration file.
+	 */
 	private LinkedList<DICRecipe> recipes;
 	
+	/* (non-Javadoc)
+	 * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
+	 */
 	@Override
 	public void onEnable() {
 		PluginManager pm = Bukkit.getPluginManager();
@@ -79,12 +100,25 @@ public class DICPlugin extends JavaPlugin implements Listener {
 			if (permission != null && pm.getPermission(permission) != null)
 				pm.getPermissions().add(new Permission(permission));
 			
-			DICRecipe recipe = new DICRecipe(result, ingredients, permission);
+			String message = config.contains("recipes." + recipeCount + ".message") ? config.getString("recipes." + recipeCount + ".message") : null;
+			if (message != null)
+				message = message.replaceAll("&", "" + ChatColor.COLOR_CHAR);
+			
+			String unsuccessfulMessage = config.contains("recipes." + recipeCount + ".message") ? config.getString("recipes." + recipeCount + ".message") : null;
+			if (unsuccessfulMessage != null)
+				unsuccessfulMessage = unsuccessfulMessage.replaceAll("&", "" + ChatColor.COLOR_CHAR);
+			
+			DICRecipe recipe = new DICRecipe(result, ingredients, permission, message, unsuccessfulMessage);
 			recipes.add(recipe);
 			recipeCount++;
 		}
 	}
 	
+	/**
+	 * On player drop item event.
+	 *
+	 * @param event the triggered event
+	 */
 	@EventHandler
 	public void onDropItem(PlayerDropItemEvent event) {
 		LinkedList<Item> items = event.getItemDrop().getNearbyEntities(2D, 2D, 2D).stream().filter(e -> e.getType() == EntityType.DROPPED_ITEM).map(e -> (Item) e).collect(Collectors.toCollection(LinkedList::new));
@@ -100,9 +134,19 @@ public class DICPlugin extends JavaPlugin implements Listener {
 		}
 	}
 	
+	/**
+	 * Combines the item entities into the recipe result.
+	 *
+	 * @param player  the player combining the objects.
+	 * @param recipe  the recipe being performed
+	 * @param found   the list of item entities found within the general proximity
+	 */
 	public void combine(Player player, DICRecipe recipe, LinkedList<Item> found) {
-		if (!player.hasPermission(recipe.getPermission()))
+		if (recipe.getPermission() != null && !player.hasPermission(recipe.getPermission())) {
+			if (recipe.getUnsuccessfulMessage() != null)
+				player.sendMessage(recipe.getUnsuccessfulMessage());
 			return;
+		}
 		
 		for (Item item : found) {
 			recipe.getIngredients().stream().filter(i -> i.isSimilar(item.getItemStack())).findAny().ifPresent(i -> {
@@ -112,6 +156,9 @@ public class DICPlugin extends JavaPlugin implements Listener {
 					item.remove();
 			});
 		}
+		
+		if (recipe.getMessage() != null)
+			player.sendMessage(recipe.getMessage());
 		
 		player.getWorld().dropItem(player.getLocation(), recipe.getResult());
 	}
