@@ -3,13 +3,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>dropped-item-combiner</artifactId>
-	<name>dropped-item-combiner</name>
+	<name>DroppedItemCombiner</name>
+	<description>A plugin to define complex recipes created by merging dropped items.</description>
 	
 	<parent>
 		<groupId>me.brittan</groupId>
 		<artifactId>parent</artifactId>
 		<version>1.1</version>
 	</parent>
+	
+	<properties>
+		<project.plugin.main>me.brittan.dic.DICPlugin</project.plugin.main>
+		<project.plugin.load>STARTUP</project.plugin.load>
+		<project.url>http://www.github.com/brittanft</project.url>
+		<project.plugin.author>Brittan Thomas</project.plugin.author>
+	</properties>
 	
 	<dependencies>
 		<dependency>
