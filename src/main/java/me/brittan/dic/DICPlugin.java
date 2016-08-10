@@ -121,12 +121,17 @@ public class DICPlugin extends JavaPlugin implements Listener {
 	 */
 	@EventHandler
 	public void onDropItem(PlayerDropItemEvent event) {
+		/* Gets a list of nearby item entities. */
 		LinkedList<Item> items = event.getItemDrop().getNearbyEntities(2D, 2D, 2D).stream().filter(e -> e.getType() == EntityType.DROPPED_ITEM).map(e -> (Item) e).collect(Collectors.toCollection(LinkedList::new));
+		
+		/* Parses through all loaded recipes. */
 		for (DICRecipe recipe : recipes) {
 			LinkedList<Item> found = new LinkedList<>();
+			/* Parses through ingredients, if an item entity exists with a similar item stack, then it adds the item entity to the found list. */
 			for (ItemStack ingredient : recipe.getIngredients())
 				items.stream().filter(i -> i.getItemStack().isSimilar(ingredient) && i.getItemStack().getAmount() >= ingredient.getAmount()).findAny().ifPresent(i -> found.add(i));
 			
+			/* If the amount of found items equals the amount of ingredients, then there are sufficient items to be. */
 			if (found.size() == recipe.getIngredients().size()) {
 				combine(event.getPlayer(), recipe, found);
 				break;
@@ -142,12 +147,14 @@ public class DICPlugin extends JavaPlugin implements Listener {
 	 * @param found   the list of item entities found within the general proximity
 	 */
 	public void combine(Player player, DICRecipe recipe, LinkedList<Item> found) {
+		/* Checks for the required permission, then continues. */
 		if (recipe.getPermission() != null && !player.hasPermission(recipe.getPermission())) {
 			if (recipe.getUnsuccessfulMessage() != null)
 				player.sendMessage(recipe.getUnsuccessfulMessage());
 			return;
 		}
 		
+		/* Parses through all found item entities and removes the amount required to combine the items. */
 		for (Item item : found) {
 			recipe.getIngredients().stream().filter(i -> i.isSimilar(item.getItemStack())).findAny().ifPresent(i -> {
 				if (item.getItemStack().getAmount() > i.getAmount())
@@ -160,6 +167,7 @@ public class DICPlugin extends JavaPlugin implements Listener {
 		if (recipe.getMessage() != null)
 			player.sendMessage(recipe.getMessage());
 		
+		/* Drops the resulting item onto the player. */
 		player.getWorld().dropItem(player.getLocation(), recipe.getResult());
 	}
 
