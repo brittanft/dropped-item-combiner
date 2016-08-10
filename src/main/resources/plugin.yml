@@ -1,0 +1,7 @@
+name: ${project.name}
+version: ${project.version}
+website: ${project.url}
+decription: ${project.description}
+author: ${project.plugin.author}
+main: ${project.plugin.main}
+load: ${project.plugin.load}
