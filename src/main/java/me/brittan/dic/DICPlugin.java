@@ -104,7 +104,7 @@ public class DICPlugin extends JavaPlugin implements Listener {
 			if (message != null)
 				message = message.replaceAll("&", "" + ChatColor.COLOR_CHAR);
 			
-			String unsuccessfulMessage = config.contains("recipes." + recipeCount + ".message") ? config.getString("recipes." + recipeCount + ".message") : null;
+			String unsuccessfulMessage = config.contains("recipes." + recipeCount + ".unsuccessfulMessage") ? config.getString("recipes." + recipeCount + ".unsuccessfulMessage") : null;
 			if (unsuccessfulMessage != null)
 				unsuccessfulMessage = unsuccessfulMessage.replaceAll("&", "" + ChatColor.COLOR_CHAR);
 			
